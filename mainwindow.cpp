@@ -5,6 +5,7 @@
 #include <QGroupBox>
 #include <QDateTime>
 #include <QRandomGenerator>
+#include <QSettings>
 
 // ============================================================
 //  九宫数据定义
@@ -95,7 +96,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     subtitle->setAlignment(Qt::AlignCenter);
     subtitle->setStyleSheet("color: #888; font-size: 12px;");
 
-    // ---------- 输入区（滑条，安卓触屏友好）----------
+    // ---------- 输入区（滑条）----------
     auto makeRow = [this](const QString& text, QSlider*& slider, QLabel*& label, int max) {
         slider = new QSlider(Qt::Horizontal);
         slider->setRange(1, max);
@@ -117,6 +118,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     };
 
     QVBoxLayout* inputLayout = new QVBoxLayout();
+    inputLayout->setSpacing(10);
     inputLayout->addLayout(makeRow("月 (1-12)：", monthSlider, monthLabel, 12));
     inputLayout->addLayout(makeRow("日 (1-30)：", daySlider,   dayLabel,   30));
     inputLayout->addLayout(makeRow("时 (1-24)：", hourSlider,  hourLabel,  24));
@@ -168,7 +170,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // ---------- 底部信息 ----------
     QLabel* footer = new QLabel(
         "本程序仅为一个数字小游戏，内容仅供娱乐；封建迷信不可取，请相信科学\n\n"
-        "版本：v0.1.0\n"
+        "版本：v0.1.1\n"
         "开发者：Byjsmc\n"
         "最后更新于：2026/09/03"
         );
@@ -191,12 +193,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // ---------- 全局样式表（安卓触屏优化）----------
     setStyleSheet(
         "QSlider::groove:horizontal { height: 10px; background: #ddd; border-radius: 5px; }"
-        "QSlider::handle:horizontal  { width: 28px; height: 28px; background: #5b8def; border-radius: 14px; margin: -9px 0; }"
+        "QSlider::handle:horizontal  { width: 40px; height: 40px; background: #5b8def; border-radius: 20px; margin: -15px 0; }"
         "QPushButton { background: #5b8def; color: white; border-radius: 9px; font-size: 15px; }"
         "QPushButton:pressed { background: #3a6bc7; }"
         "QGroupBox { font-weight: bold; font-size: 14px; border: 1px solid #ccc; border-radius: 8px; margin-top: 8px; }"
         "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 4px; }"
         );
+loadHistory();
 }
 
 // ============================================================
@@ -302,6 +305,8 @@ void MainWindow::runDivination(int month, int day, int hour) {
                          .arg(p1.name, p2.name, p3.name);
     history.push_back(record);
     historyView->append(record);
+
+    saveHistory();
 }
 
 // ============================================================
@@ -315,4 +320,40 @@ void MainWindow::onClear() {
     if (summaryLabel) summaryLabel->clear();
     if (historyView)  historyView->clear();
     history.clear();
+
+    saveHistory();
+}
+
+// ============================================================
+//  本地存储历史记录
+// ============================================================
+void MainWindow::saveHistory() {
+    QSettings settings("Byjsmc", "XiaoLiuRen");
+    // 把 vector<QString> 转成 QStringList 存下来
+    QStringList list;
+    for (const auto& s : history) {
+        list.append(s);
+    }
+    settings.setValue("history", list);
+    // 同时记住当前滑条位置（下次打开直接恢复）
+    settings.setValue("month", monthSlider->value());
+    settings.setValue("day", daySlider->value());
+    settings.setValue("hour", hourSlider->value());
+}
+
+void MainWindow::loadHistory() {
+    QSettings settings("Byjsmc", "XiaoLiuRen");
+    QStringList list = settings.value("history").toStringList();
+    history.clear();
+    for (const auto& s : list) {
+        history.push_back(s);
+        historyView->append(s);
+    }
+    // 恢复上次滑条位置
+    int m = settings.value("month", 1).toInt();
+    int d = settings.value("day", 1).toInt();
+    int h = settings.value("hour", 1).toInt();
+    monthSlider->setValue(m);
+    daySlider->setValue(d);
+    hourSlider->setValue(h);
 }
