@@ -1,25 +1,35 @@
-#pragma once
-#include <QMainWindow>
-#include <QComboBox>
-#include <QPushButton>
-#include <QTextEdit>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QMessageBox>
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-class MainWindow : public QMainWindow {
+#include <QMainWindow>
+#include <QSlider>
+#include <QLabel>
+#include <QTextEdit>
+#include <QPushButton>
+
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
+
 public:
-    MainWindow(QWidget* parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 
 private slots:
     void onDivine();
     void onRandom();
 
 private:
-    QComboBox* monthCombo;
-    QComboBox* dayCombo;
-    QComboBox* hourCombo;
-    QTextEdit* resultText;
+    QSlider *monthSlider;
+    QLabel *monthLabel;
+
+    QSlider *daySlider;
+    QLabel *dayLabel;
+
+    QSlider *hourSlider;
+    QLabel *hourLabel;
+
+    QTextEdit *resultText;
 };
+
+#endif // MAINWINDOW_H
