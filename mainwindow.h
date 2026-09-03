@@ -39,6 +39,9 @@ private:
     static constexpr int MODULO = 9;
     static const Palace PALACES[MODULO];
 
+    void saveHistory();
+    void loadHistory();
+
     int calcStep(int base, int add) const;
     void runDivination(int month, int day, int hour);
     QString comprehensive(int s1, int s2, int s3) const;
