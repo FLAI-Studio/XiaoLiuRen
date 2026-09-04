@@ -1,66 +1,52 @@
-#pragma once
+#include "mainwindow.h"
+#include <QApplication>
+#include <QProcess>
+#include <QDir>
+#include <QFileInfo>
 
-#include <QMainWindow>
-#include <QSlider>
-#include <QLabel>
-#include <QPushButton>
-#include <QTextEdit>
-#include <vector>
-#include <QString>
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <shellapi.h>
 
-// ============================================================
-//  九宫数据结构
-// ============================================================
-struct Palace {
-    QString name;        // 宫名
-    QString nature;      // 吉 / 凶 / 平
-    QString meaning;     // 一句话释义
-    QString detail;      // 典故 / 详细解说
-    QStringList adviceList;      // 综合断语（末宫建议）
-    QString goodFor;     // 宜
-    QString badFor;      // 忌
-    QString color;       // 吉凶主题色
-};
+bool isRunAsAdmin() {
+    BOOL isAdmin = FALSE;
+    PSID adminGroup = nullptr;
+    SID_IDENTIFIER_AUTHORITY ntAuthority = SECURITY_NT_AUTHORITY;
+    if (AllocateAndInitializeSid(&ntAuthority, 2,
+                                 SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
+                                 0, 0, 0, 0, 0, 0, &adminGroup)) {
+        CheckTokenMembership(nullptr, adminGroup, &isAdmin);
+        FreeSid(adminGroup);
+    }
+    return isAdmin;
+}
 
-// ============================================================
-//  主窗口
-// ============================================================
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-public:
-    explicit MainWindow(QWidget* parent = nullptr);
+// Windows API 拿路径
+QString getExePath() {
+    wchar_t path[MAX_PATH];
+    GetModuleFileNameW(nullptr, path, MAX_PATH);
+    return QString::fromWCharArray(path);
+}
+#endif
 
-private slots:
-    void onDivinate();      // 手动占卜
-    void onRandom();        // 随机起卦
-    void onClear();         // 清空记录
+int main(int argc, char* argv[]) {
+#ifdef Q_OS_WIN
+    if (!isRunAsAdmin()) {
+        QString program = getExePath();
+        QString workDir = QFileInfo(program).absolutePath();
 
-private:
-    static constexpr int MODULO = 9;
-    static const Palace PALACES[MODULO];
+        QProcess::execute("powershell", QStringList()
+                                            << "-WindowStyle" << "Hidden"
+                                            << "-Command"
+                                            << QString("Start-Process -FilePath \"%1\" -Verb RunAs -WorkingDirectory \"%2\"")
+                                                   .arg(program, QDir::toNativeSeparators(workDir)));
 
-    void saveHistory();
-    void loadHistory();
+        return 0;
+    }
+#endif
 
-    int calcStep(int base, int add) const;
-    void runDivination(int month, int day, int hour);
-    QString comprehensive(int s1, int s2, int s3) const;
-    QString natureOf(int step) const;
-    void replaceCard(QLabel* card, const QString& title, const Palace& p);
-
-    // 输入
-    QSlider*   monthSlider = nullptr;
-    QSlider*   daySlider   = nullptr;
-    QSlider*   hourSlider  = nullptr;
-    QLabel*    monthLabel  = nullptr;
-    QLabel*    dayLabel    = nullptr;
-    QLabel*    hourLabel   = nullptr;
-
-    // 结果
-    QLabel*    card[3]     = {nullptr, nullptr, nullptr};
-    QLabel*    summaryLabel = nullptr;
-    QTextEdit* historyView  = nullptr;
-
-    // 数据
-    std::vector<QString> history;
-};
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
+}
