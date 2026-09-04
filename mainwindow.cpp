@@ -2,105 +2,20 @@
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QGroupBox>
-#include <QDateTime>
+#include <QDate>
+#include <QTime>
 #include <QRandomGenerator>
 #include <QSettings>
+#include <QMessageBox>
+#include <QApplication>
+#include <QDir>
 
-// ============================================================
-//  九宫数据定义
-//  顺序：大安(0) 留连(1) 速喜(2) 赤口(3) 小吉(4) 空亡(5) 大吉(6) 小安(7) 速断(8)
-//  每个宫位包含：名称 / 吉凶 / 释义 / 详解 / 建议 / 宜 / 忌 / 主题色
-// ============================================================
-const Palace MainWindow::PALACES[MODULO] = {
-    {"大安", "吉",
-     "安稳顺利，不动为吉。",
-     "六壬之首，主静守。凡事平稳、无风无浪，宜安居乐业、守旧待时，忌妄动冒进。",
-     {"运势平稳，宜守不宜攻。工作上维持现状即可，感情顺其自然。",
-      "厚积薄发，别急着做大决定，等时机成熟再动。",
-      "适合整理复盘、处理积压事务，稳中求进。"},
-     "守成、签约、求稳、居家", "冒险、远行、急进",
-     "#2e7d32"},
-
-    {"留连", "凶",
-     "拖延纠缠，暂缓行事。",
-     "主纠缠、反复、拖延。事情易受阻停滞，迟迟难决，宜耐心等待、理清头绪再行动。",
-     {"事情有阻碍，先放一放，冷处理比强推好。",
-      "今天不适合做重要决定，先理清头绪再说。",
-      "工作暂缓新项目，感情避免翻旧账。"},
-     "复盘、沟通、暂缓决策", "仓促定论、强推硬上",
-     "#c62828"},
-
-    {"速喜", "吉",
-     "快速喜庆，好事将近。",
-     "主迅速、喜讯。好事来得快，多有意外之喜、消息将至，宜抓紧行动莫犹豫。",
-     {"好运来得快，抓紧行动别犹豫！见好就收别贪多。",
-      "贵人将至，消息灵通，适合主动争取。",
-      "感情适合表白或推进关系，但注意节奏。"},
-     "求财、赴约、表白、出行", "拖延、坐失良机",
-     "#2e7d32"},
-
-    {"赤口", "凶",
-     "口舌争斗，谨防是非。",
-     "主口舌、争讼、是非。易有争吵官非、言语误会，宜谨言慎行、以和为贵。",
-     {"今天少说话多做事，合同文件仔细看。",
-      "社交场合别乱开玩笑，忍一时风平浪静。",
-      "谨言慎行保平安，避免许诺和争执。"},
-     "沉默、和解、签字（需谨慎）", "争吵、许诺、争执",
-     "#c62828"},
-
-    {"小吉", "吉",
-     "和合小成，平平顺遂。",
-     "主和合、小成。事情多有小成，人际和睦，宜与人合作、顺势而为。",
-     {"小有所成，保持平常心。别贪大求全，把小事做好。",
-      "适合合作社交、处理日常琐事，人际运不错。",
-      "顺势而为即可，不需要太用力。"},
-     "合作、交友、小事、牵线", "独断、贪大求全",
-     "#2e7d32"},
-
-    {"空亡", "凶",
-     "落空虚无，时机未到。",
-     "主落空、虚幻、无果。劳而无功、期望落空，宜另做打算、积蓄待发。",
-     {"此事恐落空，不如另做打算。及时止损是上策。",
-      "低谷期正好用来学习和蓄力，别在错误的事上死磕。",
-      "把精力转移到更有希望的事上，强求无益。"},
-     "止损、等待、调整方向", "死磕、大额投资、强求",
-     "#c62828"},
-
-    {"大吉", "吉",
-     "大吉大利，万事亨通。",
-     "六壬最吉之宫。运势亨通、诸事顺遂，所求皆成，宜放手大胆作为。",
-     {"鸿运当头，放手去做必有所获！但好运时更要低调。",
-      "适合开启新项目、做重要决定、大胆表达。乘势而上。",
-      "心想事成，但别飘，稳住节奏继续推进。"},
-     "开创、求财、婚嫁、大事", "犹豫、退缩",
-     "#2e7d32"},
-
-    {"小安", "平",
-     "小有所成，安稳无虞。",
-     "主安稳、小成。无大喜亦无大忧，平淡是福，宜踏实经营、静养身心。",
-     {"安稳度日，小惊喜正在路上。享受当下就好。",
-      "适合整理家务、陪伴家人、做点喜欢的小事。",
-      "平淡是福，不需要大动作，踏实经营。"},
-     "日常、养生、积攒、学习", "投机、冒进",
-     "#ef6c00"},
-
-    {"速断", "平",
-     "当机立断，速战速决。",
-     "主决断、明快。犹豫则生变，宜当机立断、速战速决，切勿拖泥带水。",
-     {"犹豫就会败北，立刻做决定！快刀斩乱麻。",
-      "不管是换工作还是结束一段关系，想好了就果断执行。",
-      "再拖下去只会更糟，长痛不如短痛。"},
-     "决断、止损、快刀斩乱麻", "拖延、反复纠结",
-     "#ef6c00"},
-    };
-
-// ============================================================
-//  构造函数：UI 布局与初始化
-// ============================================================
+// ==================== 构造函数 ====================
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("九宫小六壬");
-    resize(460, 760);
+    resize(520, 820);
 
     // ---------- 顶部标题 ----------
     QLabel* title = new QLabel("🔮 九宫小六壬");
@@ -114,7 +29,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     subtitle->setAlignment(Qt::AlignCenter);
     subtitle->setStyleSheet("color: #888; font-size: 12px;");
 
-    // ---------- 输入区（滑条）----------
+    // ---------- 输入区 ----------
     auto makeRow = [this](const QString& text, QSlider*& slider, QLabel*& label, int max) {
         slider = new QSlider(Qt::Horizontal);
         slider->setRange(1, max);
@@ -127,7 +42,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
         connect(slider, &QSlider::valueChanged, this, [label](int v) {
             label->setText(QString::number(v));
         });
-
         QHBoxLayout* row = new QHBoxLayout();
         row->addWidget(new QLabel(text), 0);
         row->addWidget(slider, 1);
@@ -138,8 +52,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     QVBoxLayout* inputLayout = new QVBoxLayout();
     inputLayout->setSpacing(10);
     inputLayout->addLayout(makeRow("月 (1-12)：", monthSlider, monthLabel, 12));
-    inputLayout->addLayout(makeRow("日 (1-30)：", daySlider,   dayLabel,   30));
-    inputLayout->addLayout(makeRow("时 (1-24)：", hourSlider,  hourLabel,  24));
+    inputLayout->addLayout(makeRow("日 (1-30)：", daySlider, dayLabel, 30));
+    inputLayout->addLayout(makeRow("时 (1-24)：", hourSlider, hourLabel, 24));
 
     QGroupBox* inputBox = new QGroupBox("起卦参数");
     inputBox->setLayout(inputLayout);
@@ -147,20 +61,39 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // ---------- 按钮区 ----------
     QPushButton* btnDivinate = new QPushButton("✅开始占卜");
     QPushButton* btnRandom   = new QPushButton("🎲随机起卦");
+    QPushButton* btnToday    = new QPushButton("📅今日运势");
     QPushButton* btnClear    = new QPushButton("❌清空");
     btnDivinate->setMinimumHeight(44);
     btnRandom->setMinimumHeight(44);
+    btnToday->setMinimumHeight(44);
     btnClear->setMinimumHeight(44);
     connect(btnDivinate, &QPushButton::clicked, this, &MainWindow::onDivinate);
     connect(btnRandom,   &QPushButton::clicked, this, &MainWindow::onRandom);
+    connect(btnToday,    &QPushButton::clicked, this, &MainWindow::onToday);
     connect(btnClear,    &QPushButton::clicked, this, &MainWindow::onClear);
 
     QHBoxLayout* btnLayout = new QHBoxLayout();
     btnLayout->addWidget(btnDivinate);
     btnLayout->addWidget(btnRandom);
+    btnLayout->addWidget(btnToday);
     btnLayout->addWidget(btnClear);
 
-    // ---------- 结果区（三宫卡片 + 综合断语）----------
+    // ---------- 九宫格可视化 ----------
+    QGroupBox* gridBox = new QGroupBox("九宫格");
+    QGridLayout* gridLayout = new QGridLayout(gridBox);
+    gridLayout->setSpacing(4);
+    for (int i = 0; i < 9; ++i) {
+        gridCell[i] = new QLabel(QString::number(i + 1) + "\n" + QString::fromUtf8(PALACES[i].name));
+        gridCell[i]->setAlignment(Qt::AlignCenter);
+        gridCell[i]->setMinimumSize(60, 60);
+        gridCell[i]->setWordWrap(true);
+        gridCell[i]->setStyleSheet(
+            "border:1px solid #ccc; border-radius:6px; padding:4px; "
+            "background:#fafafa; font-size:12px;");
+        gridLayout->addWidget(gridCell[i], i / 3, i % 3);
+    }
+
+    // ---------- 结果区 ----------
     QVBoxLayout* resultLayout = new QVBoxLayout();
     for (int i = 0; i < 3; ++i) {
         card[i] = new QLabel();
@@ -177,81 +110,78 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     resultBox->setLayout(resultLayout);
 
     // ---------- 历史记录 ----------
-    historyView = new QTextEdit();
-    historyView->setReadOnly(true);
-    historyView->setMaximumHeight(130);
-    QGroupBox* historyBox = new QGroupBox("历史记录");
+    historyList = new QListWidget();
+    historyList->setMaximumHeight(130);
+    connect(historyList, &QListWidget::itemClicked, this, &MainWindow::onHistoryItemClicked);
+
+    btnDeleteHistory = new QPushButton("🗑删除选中");
+    btnDeleteHistory->setEnabled(false);
+    connect(btnDeleteHistory, &QPushButton::clicked, this, &MainWindow::onDeleteHistory);
+
     QVBoxLayout* historyLayout = new QVBoxLayout();
-    historyLayout->addWidget(historyView);
+    historyLayout->addWidget(historyList);
+    historyLayout->addWidget(btnDeleteHistory);
+    QGroupBox* historyBox = new QGroupBox("历史记录");
     historyBox->setLayout(historyLayout);
+
+    // ---------- 底部工具栏 ----------
+    themeCheck = new QCheckBox("🌙暗色模式");
+    connect(themeCheck, &QCheckBox::toggled, this, &MainWindow::onToggleTheme);
+
+    QHBoxLayout* toolLayout = new QHBoxLayout();
+    toolLayout->addWidget(themeCheck);
+    toolLayout->addStretch();
 
     // ---------- 底部信息 ----------
     QLabel* footer = new QLabel(
         "本程序仅为一个数字小游戏，内容仅供娱乐；封建迷信不可取，请相信科学\n\n"
-        "版本：v0.1.2\n"
+        "版本：v0.1.3\n"
         "开发者：Byjsmc\n"
-        "最后更新于：2026/09/04"
+        "最后更新于：2026/09/05"
         );
     footer->setStyleSheet("color: gray; font-size: 11px;");
     footer->setWordWrap(true);
 
-    // ---------- 主布局组装 ----------
+    // ---------- 主布局 ----------
     QWidget* central = new QWidget();
     QVBoxLayout* mainLayout = new QVBoxLayout(central);
-    mainLayout->setSpacing(10);
+    mainLayout->setSpacing(8);
     mainLayout->addWidget(title);
     mainLayout->addWidget(subtitle);
     mainLayout->addWidget(inputBox);
     mainLayout->addLayout(btnLayout);
+    mainLayout->addWidget(gridBox);
     mainLayout->addWidget(resultBox);
     mainLayout->addWidget(historyBox);
+    mainLayout->addLayout(toolLayout);
     mainLayout->addWidget(footer);
     setCentralWidget(central);
 
-    // ---------- 全局样式表（安卓触屏优化）----------
-    setStyleSheet(
-        "QSlider::groove:horizontal { height: 10px; background: #ddd; border-radius: 5px; }"
-        "QSlider::handle:horizontal  { width: 40px; height: 40px; background: #5b8def; border-radius: 20px; margin: -15px 0; }"
-        "QPushButton { background: #5b8def; color: white; border-radius: 9px; font-size: 15px; }"
-        "QPushButton:pressed { background: #3a6bc7; }"
-        "QGroupBox { font-weight: bold; font-size: 14px; border: 1px solid #ccc; border-radius: 8px; margin-top: 8px; }"
-        "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 4px; }"
-        );
-loadHistory();
+    // ---------- 加载配置 ----------
+    loadConfig();
+    loadHistory();
+    applyTheme(darkTheme);
 }
 
-// ============================================================
-//  算法工具
-// ============================================================
-
-/**
- * @brief 九宫取模计算
- * @param base 上一宫结果
- * @param add  本次输入值
- * @return 1~9 的宫位编号
- */
-int MainWindow::calcStep(int base, int add) const {
-    int res = (base + add) % MODULO;
-    return res == 0 ? MODULO : res;
+MainWindow::~MainWindow() {
+    saveConfig();
+    saveHistory();
 }
 
-/**
- * @brief 根据宫位编号获取吉凶性质
- * @param step 1~9
- * @return "吉" / "凶" / "平"
- */
-QString MainWindow::natureOf(int step) const {
-    return PALACES[step - 1].nature;
+// ==================== 工具函数 ====================
+
+QString MainWindow::natureColor(const char* nature) const {
+    QString n = QString::fromUtf8(nature);
+    if (n == "吉") return "#2e7d32";
+    if (n == "凶") return "#c62828";
+    return "#ef6c00";
 }
 
-/**
- * @brief 综合断语：统计三宫吉凶数量，给出整体判断
- */
 QString MainWindow::comprehensive(int s1, int s2, int s3) const {
     int good = 0, bad = 0;
     int steps[3] = {s1, s2, s3};
     for (int i = 0; i < 3; ++i) {
-        QString n = natureOf(steps[i]);
+        QString n = QString::fromUtf8(PALACES[steps[i] - 1].nature);
         if (n == "吉")      good++;
         else if (n == "凶") bad++;
     }
@@ -262,22 +192,46 @@ QString MainWindow::comprehensive(int s1, int s2, int s3) const {
     return "吉凶参半。事在人为，保持平常心，顺势而为即可。";
 }
 
-/**
- * @brief 更新卡片内容（复用 QLabel，避免重新布局）
- */
-void MainWindow::replaceCard(QLabel* card, const QString& title, const Palace& p) {
-    card->setText(QString(
-                      "<div style='border-left:5px solid %1; padding:6px 10px; background:#fafafa; border-radius:4px;'>"
-                      "<b>%2</b> <span style='color:%1;'>【%3】</span><br>"
-                      "<span style='font-size:13px;'>%4</span><br>"
-                      "<span style='color:#555; font-size:11px;'>宜：%5 ｜ 忌：%6</span>"
-                      "</div>"
-                      ).arg(p.color, title, p.nature + " · " + p.name, p.detail, p.goodFor, p.badFor));
+void MainWindow::refreshGrid(int s1, int s2, int s3) {
+    int hit[3] = {s1, s2, s3};
+    for (int i = 0; i < 9; ++i) {
+        QString base = "border:1px solid #ccc; border-radius:6px; padding:4px; "
+                       "background:#fafafa; font-size:12px;";
+        bool isHit = false;
+        QString hitColor;
+        for (int k = 0; k < 3; ++k) {
+            if (i + 1 == hit[k]) {
+                isHit = true;
+                hitColor = natureColor(PALACES[i].nature);
+            }
+        }
+        if (isHit) {
+            gridCell[i]->setStyleSheet(QString(
+                                           "border:2px solid %1; border-radius:6px; padding:4px; "
+                                           "background:%1; color:white; font-size:12px; font-weight:bold;")
+                                           .arg(hitColor));
+        } else {
+            gridCell[i]->setStyleSheet(base);
+        }
+    }
 }
 
-// ============================================================
-//  占卜逻辑
-// ============================================================
+void MainWindow::replaceCard(QLabel* card, const QString& title, const Palace& p) {
+    QString color = natureColor(p.nature);
+    card->setText(QString(
+                      "<div style='border-left:5px solid %1; padding:6px 10px; background:#fafafa; border-radius:4px;'>"
+                      "<b>%2</b> <span style='color:%1;'>【%3 · %4】</span><br>"
+                      "<span style='font-size:13px;'>%5</span><br>"
+                      "<span style='color:#555; font-size:11px;'>💡 %6</span>"
+                      "</div>"
+                      ).arg(color, title,
+                           QString::fromUtf8(p.nature),
+                           QString::fromUtf8(p.name),
+                           QString::fromUtf8(p.meaning),
+                           QString::fromUtf8(p.advice)));
+}
+
+// ==================== 占卜逻辑 ====================
 
 void MainWindow::onDivinate() {
     runDivination(monthSlider->value(), daySlider->value(), hourSlider->value());
@@ -293,78 +247,157 @@ void MainWindow::onRandom() {
     runDivination(month, day, hour);
 }
 
+void MainWindow::onToday() {
+    QDate today = QDate::currentDate();
+    QTime now = QTime::currentTime();
+    int month = today.month();
+    int day   = today.day();
+    int hour  = now.hour() + 1;
+    if (hour > 24) hour = 24;
+
+    monthSlider->setValue(month);
+    daySlider->setValue(day);
+    hourSlider->setValue(hour);
+    runDivination(month, day, hour);
+}
+
 void MainWindow::runDivination(int month, int day, int hour) {
-    int step1 = calcStep(month % MODULO, 0);
-    int step2 = calcStep(step1, day);
-    int step3 = calcStep(step2, hour);
+    int s1, s2, s3;
+    divinate(month, day, hour, s1, s2, s3);
 
-    const Palace& p1 = PALACES[step1 - 1];
-    const Palace& p2 = PALACES[step2 - 1];
-    const Palace& p3 = PALACES[step3 - 1];
-
-    // 三宫卡片（初·起因 / 中·过程 / 末·结局）
     QString titles[3] = {
         QString("初宫（月 %1 · 起因）").arg(month),
         QString("中宫（日 %1 · 过程）").arg(day),
         QString("末宫（时 %1 · 结局）").arg(hour)
     };
-    replaceCard(card[0], titles[0], p1);
-    replaceCard(card[1], titles[1], p2);
-    replaceCard(card[2], titles[2], p3);
+    replaceCard(card[0], titles[0], PALACES[s1 - 1]);
+    replaceCard(card[1], titles[1], PALACES[s2 - 1]);
+    replaceCard(card[2], titles[2], PALACES[s3 - 1]);
 
-    // 随机末宫建议
-    QString advice;
-    if (!p3.adviceList.isEmpty()) {
-        advice = p3.adviceList[QRandomGenerator::global()->bounded(p3.adviceList.size())];
-    } else {
-        advice = "无建议";
-    }
+    refreshGrid(s1, s2, s3);
 
-    // 综合断语 + 末宫建议
     summaryLabel->setText(QString("🔮 %1\n📌 末宫建议：%2")
-                              .arg(comprehensive(step1, step2, step3), advice));
+                              .arg(comprehensive(s1, s2, s3),
+                                   QString::fromUtf8(PALACES[s3 - 1].advice)));
 
-    // 历史记录
     QString record = QString("[%1] %2/%3 %4时 → %5 · %6 · %7")
-                         .arg(QDateTime::currentDateTime().toString("HH:mm:ss"))
+                         .arg(QTime::currentTime().toString("HH:mm:ss"))
                          .arg(month).arg(day).arg(hour)
-                         .arg(p1.name, p2.name, p3.name);
-    history.push_back(record);
-    historyView->append(record);
+                         .arg(QString::fromUtf8(PALACES[s1 - 1].name),
+                              QString::fromUtf8(PALACES[s2 - 1].name),
+                              QString::fromUtf8(PALACES[s3 - 1].name));
+    history.append(record);
+    historyList->addItem(record);
 
     saveHistory();
 }
 
-// ============================================================
-//  清空
-// ============================================================
+// ==================== 清空 ====================
 
 void MainWindow::onClear() {
-    for (int i = 0; i < 3; ++i) {
-        if (card[i]) card[i]->clear();
-    }
-    if (summaryLabel) summaryLabel->clear();
-    if (historyView)  historyView->clear();
-    history.clear();
+    QMessageBox::StandardButton ret =
+        QMessageBox::question(this, "确认清空",
+                              "确定要清空所有历史记录吗？此操作不可撤销。",
+                              QMessageBox::Yes | QMessageBox::No);
+    if (ret != QMessageBox::Yes) return;
 
+    for (int i = 0; i < 3; ++i) card[i]->clear();
+    summaryLabel->clear();
+    historyList->clear();
+    history.clear();
+    refreshGrid(0, 0, 0);
     saveHistory();
 }
 
-// ============================================================
-//  本地存储历史记录
-// ============================================================
-void MainWindow::saveHistory() {
-    QSettings settings("Byjsmc", "XiaoLiuRen");
-    // 把 vector<QString> 转成 QStringList 存下来
-    QStringList list;
-    for (const auto& s : history) {
-        list.append(s);
+// ==================== 历史记录管理 ====================
+
+void MainWindow::onHistoryItemClicked(QListWidgetItem* item) {
+    Q_UNUSED(item);
+    btnDeleteHistory->setEnabled(true);
+}
+
+void MainWindow::onDeleteHistory() {
+    int row = historyList->currentRow();
+    if (row < 0 || row >= historyList->count()) return;
+
+    QMessageBox::StandardButton ret =
+        QMessageBox::question(this, "删除历史",
+                              "确定删除这条记录吗？",
+                              QMessageBox::Yes | QMessageBox::No);
+    if (ret != QMessageBox::Yes) return;
+
+    history.removeAt(row);
+    delete historyList->takeItem(row);
+    if (historyList->count() == 0) btnDeleteHistory->setEnabled(false);
+    saveHistory();
+}
+
+// ==================== 暗色模式 ====================
+
+void MainWindow::onToggleTheme() {
+    darkTheme = themeCheck->isChecked();
+    applyTheme(darkTheme);
+    saveConfig();
+}
+
+void MainWindow::applyTheme(bool dark) {
+    if (dark) {
+        qApp->setStyleSheet(
+            "QMainWindow, QWidget { background-color: #2b2b2b; color: #eee; }"
+            "QGroupBox { border: 1px solid #555; border-radius: 8px; "
+            "            font-weight: bold; font-size: 14px; margin-top: 8px; color: #ddd; }"
+            "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 4px; }"
+            "QSlider::groove:horizontal { height: 10px; background: #555; border-radius: 5px; }"
+            "QSlider::handle:horizontal { width: 40px; height: 40px; "
+            "            background: #5b8def; border-radius: 20px; margin: -15px 0; }"
+            "QPushButton { background: #3a6bc7; color: white; border-radius: 9px; font-size: 15px; }"
+            "QPushButton:pressed { background: #2a4fa0; }"
+            "QPushButton:disabled { background: #444; color: #888; }"
+            "QListWidget { background: #353535; color: #eee; border: 1px solid #555; border-radius: 4px; }"
+            "QLabel { color: #eee; }"
+            );
+    } else {
+        qApp->setStyleSheet(
+            "QSlider::groove:horizontal { height: 10px; background: #ddd; border-radius: 5px; }"
+            "QSlider::handle:horizontal { width: 40px; height: 40px; "
+            "            background: #5b8def; border-radius: 20px; margin: -15px 0; }"
+            "QPushButton { background: #5b8def; color: white; border-radius: 9px; font-size: 15px; }"
+            "QPushButton:pressed { background: #3a6bc7; }"
+            "QGroupBox { font-weight: bold; font-size: 14px; border: 1px solid #ccc; "
+            "            border-radius: 8px; margin-top: 8px; }"
+            "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 4px; }"
+            );
     }
-    settings.setValue("history", list);
-    // 同时记住当前滑条位置（下次打开直接恢复）
+}
+
+// ==================== 配置持久化 ====================
+
+void MainWindow::saveConfig() {
+    QSettings settings("Byjsmc", "XiaoLiuRen");
+    settings.setValue("darkTheme", darkTheme);
     settings.setValue("month", monthSlider->value());
     settings.setValue("day", daySlider->value());
     settings.setValue("hour", hourSlider->value());
+}
+
+void MainWindow::loadConfig() {
+    QSettings settings("Byjsmc", "XiaoLiuRen");
+    darkTheme = settings.value("darkTheme", false).toBool();
+    themeCheck->setChecked(darkTheme);
+
+    int m = settings.value("month", 1).toInt();
+    int d = settings.value("day", 1).toInt();
+    int h = settings.value("hour", 1).toInt();
+    monthSlider->setValue(m);
+    daySlider->setValue(d);
+    hourSlider->setValue(h);
+}
+
+void MainWindow::saveHistory() {
+    QSettings settings("Byjsmc", "XiaoLiuRen");
+    QStringList list;
+    for (const auto& s : history) list.append(s);
+    settings.setValue("history", list);
 }
 
 void MainWindow::loadHistory() {
@@ -372,14 +405,7 @@ void MainWindow::loadHistory() {
     QStringList list = settings.value("history").toStringList();
     history.clear();
     for (const auto& s : list) {
-        history.push_back(s);
-        historyView->append(s);
+        history.append(s);
+        historyList->addItem(s);
     }
-    // 恢复上次滑条位置
-    int m = settings.value("month", 1).toInt();
-    int d = settings.value("day", 1).toInt();
-    int h = settings.value("hour", 1).toInt();
-    monthSlider->setValue(m);
-    daySlider->setValue(d);
-    hourSlider->setValue(h);
 }
