@@ -16,7 +16,7 @@ struct Palace {
     QString nature;      // 吉 / 凶 / 平
     QString meaning;     // 一句话释义
     QString detail;      // 典故 / 详细解说
-    QString advice;      // 综合断语（末宫建议）
+    QStringList adviceList;      // 综合断语（末宫建议）
     QString goodFor;     // 宜
     QString badFor;      // 忌
     QString color;       // 吉凶主题色
